@@ -1,9 +1,0 @@
-let current = { user:null, premium:null };
-function show(id){ for(const s of document.querySelectorAll('section'))s.classList.add('hidden'); document.getElementById(id).classList.remove('hidden'); refresh(); }
-async function api(url, opts){ const r=await fetch(url,opts); const j=await r.json(); if(!r.ok) throw new Error(j.error||'Request failed'); return j; }
-function renderSuggestion(target, item){ const el=document.getElementById(target==='premium'?'premiumSuggestion':'suggestion'); el.innerHTML=`<a href="${item.link}" target="_blank">Open current link</a><div>${item.text}</div><small>Source: ${item.fileName}</small>`; }
-async function getSuggestion(user){ const item=await api('/api/random?user='+encodeURIComponent(user)); current[user]=item; renderSuggestion(user,item); }
-async function markDone(user){ const item=current[user]; if(!item){ alert('Get a suggestion first.'); return; } const res=await api('/api/mark-done',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,link:item.link,text:item.text})}); alert('Done saved. Total for '+user+': '+res.count); refresh(); }
-async function uploadFile(){ const input=document.getElementById('file'); if(!input.files[0]) return alert('Choose a file first.'); const fd=new FormData(); fd.append('file',input.files[0]); try{ const res=await api('/api/upload',{method:'POST',body:fd}); document.getElementById('status').textContent=res.message+' Links: '+res.linkCount+' Texts: '+res.textCount; refresh(); }catch(e){ document.getElementById('status').textContent=e.message; } }
-async function refresh(){ try{ document.getElementById('active').textContent=JSON.stringify(await api('/api/active-data'),null,2); const p=await api('/api/progress'); document.getElementById('progress').textContent=JSON.stringify(p,null,2); document.getElementById('premiumProgress').textContent=JSON.stringify(p.users?.premium||{count:0,items:[]},null,2); }catch{} }
-refresh();
